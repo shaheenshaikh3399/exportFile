@@ -1,0 +1,15 @@
+server:
+  port: 7777
+# App And DB Config
+spring:
+  application:
+    name: catalog-service
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/fileExportDb
+    username: root
+    password: root123
