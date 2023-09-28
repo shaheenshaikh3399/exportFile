@@ -28,8 +28,14 @@ import java.util.List;
 public class FileExportServiceImpl implements FileExportService {
     private final FileExportRepository fileExportRepository;
     @Override
-    public byte[] generateEmployeeReport(List<Employee> employees, FileFormat fileFormat) throws IOException {
+    public byte[] generateEmployeeReport(FileFormat fileFormat) throws IOException {
         log.info("Inside generateEmployeeReport");
+        List<Employee> employees = fileExportRepository.findAll();
+        if (employees.isEmpty()) {
+            // Return a specific error response when the list is empty
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("No employees found. Unable to generate the report.");
+        }
         switch (fileFormat) {
             case EXCEL:
                 return generateExcelReport(employees);

@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.util.List;
 
 public interface FileExportService {
-    public byte[] generateEmployeeReport(List<Employee> employees, FileFormat format) throws IOException;
+    public byte[] generateEmployeeReport(FileFormat format) throws IOException;
 
     Employee saveEmployee(Employee employee);
 }

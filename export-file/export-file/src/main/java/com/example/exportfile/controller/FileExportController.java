@@ -5,6 +5,7 @@ import com.example.exportfile.entity.FileFormat;
 import com.example.exportfile.repository.FileExportRepository;
 import com.example.exportfile.service.FileExportService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -14,42 +15,28 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/api/export")
+@RequestMapping("/generate-export")
 
 
 public class FileExportController {
 
-    private final FileExportRepository fileExportRepository;
     private final FileExportService fileExportService;
-    @GetMapping
+    @GetMapping("/format/{format}")
     public ResponseEntity<byte[]> exportEmployeeData(
-            @RequestParam FileFormat format,
-            @RequestParam(required = false) Integer id) throws IOException {
+            @PathVariable FileFormat format,
+            HttpServletResponse response) throws IOException {
 
-        List<Employee> employees;
-
-        if (id != null) {
-            // Retrieving a single employee by ID
-            Employee employee = fileExportRepository.findById(id)
-                    .orElseThrow(() -> new EntityNotFoundException("Employee not found"));
-            employees = Collections.singletonList(employee);
-        } else {
-            // Retrieving all employees
-            employees = fileExportRepository.findAll();
-        }
-        byte[] reportData = fileExportService.generateEmployeeReport(employees, format);
+        byte[] reportData = fileExportService.generateEmployeeReport(format);
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
         String timestamp = dateFormat.format(new Date());
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
 
         String fileExtension;
         switch (format) {
@@ -68,11 +55,12 @@ public class FileExportController {
             default:
                 throw new IllegalArgumentException("Unsupported file format");
         }
+        response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);
         String filename = "export_" + timestamp + "." + fileExtension;
-        headers.setContentDispositionFormData("attachment", filename);
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+        response.getOutputStream().write(reportData);
 
-
-        return new ResponseEntity<>(reportData, headers, HttpStatus.OK);
+        return null;
     }
     @PostMapping
     public ResponseEntity<Employee> saveEmployee(@RequestBody Employee employee){
